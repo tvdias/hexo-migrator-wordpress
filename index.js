@@ -55,6 +55,21 @@ hexo.extend.migrator.register('wordpress', function(args, callback){
           return next();
         }
 
+        var thumbnail_url = '';
+        if (item['wp:postmeta']) {
+          var postmeta_thumbnail = item['wp:postmeta'].find(function(element) {
+            return element['wp:meta_key'] == "_thumbnail_id";
+          });
+
+          if (postmeta_thumbnail) {
+            thumbnail_url = xml.rss.channel[0].item.find(function(element) {
+              return element['wp:post_id'] == postmeta_thumbnail['wp:meta_value'][0];
+            });
+
+            thumbnail_url = thumbnail_url ? thumbnail_url['wp:attachment_url'][0] : '';
+          }
+        }
+
         var title = item.title[0].replace(/"/g, "\\\""),
           id = item['wp:post_id'][0],
           date = item['wp:post_date'][0],
@@ -92,6 +107,7 @@ hexo.extend.migrator.register('wordpress', function(args, callback){
         var data = {
           title: title || slug,
           url: +id+".html",
+          thumbnail: thumbnail_url,
           id: +id,
           date: date,
           content: content,
